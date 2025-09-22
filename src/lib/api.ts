@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:5601/abada/api';
 
 export interface ApiResponse<T> {
   data?: T;
@@ -40,6 +40,7 @@ export interface ProcessDefinition {
   name: string;
   version: number;
   description?: string;
+  documentation?: string;
   deploymentId: string;
   deploymentTime: string;
   resourceName: string;
@@ -120,87 +121,13 @@ class ApiClient {
     if (filters?.status) queryParams.append('status', filters.status);
     if (filters?.assignee) queryParams.append('assignee', filters.assignee);
     if (filters?.dueBefore) queryParams.append('dueBefore', filters.dueBefore);
+    const queryString = queryParams.toString();
 
-    // Mock data for now
-    const mockTasks: TaskDetailsDto[] = [
-      {
-        id: '12345',
-        name: 'Review Client Proposal',
-        assignee: 'Sarah Lee',
-        candidateGroups: ['Sales Team'],
-        status: 'IN_PROGRESS',
-        dueDate: '2024-03-15',
-        processInstanceId: 'proc-001',
-        processDefinitionId: 'client-review-1',
-        processDefinitionKey: 'clientReview',
-        processVariables: {
-          clientName: 'Acme Corp',
-          proposalValue: 50000,
-        },
-        createdDate: '2024-03-10',
-        lastModified: '2024-03-12',
-      },
-      {
-        id: '12346',
-        name: 'Prepare Presentation Slides',
-        assignee: 'David Chen',
-        candidateGroups: ['Marketing Team'],
-        status: 'COMPLETED',
-        dueDate: '2024-03-20',
-        processInstanceId: 'proc-002',
-        processDefinitionId: 'presentation-1',
-        processDefinitionKey: 'presentation',
-        processVariables: {
-          topic: 'Q1 Results',
-          audience: 'Board Members',
-        },
-        createdDate: '2024-03-08',
-        lastModified: '2024-03-15',
-      },
-      {
-        id: '12347',
-        name: 'Schedule Team Meeting',
-        assignee: 'Emily Wong',
-        candidateGroups: ['Management'],
-        status: 'CREATED',
-        dueDate: '2024-03-22',
-        processInstanceId: 'proc-003',
-        processDefinitionId: 'meeting-1',
-        processDefinitionKey: 'teamMeeting',
-        processVariables: {
-          meetingType: 'Weekly Standup',
-          duration: 60,
-        },
-        createdDate: '2024-03-12',
-        lastModified: '2024-03-12',
-      },
-    ];
-
-    return { data: mockTasks, status: 200 };
+    return this.request(`/v1/tasks${queryString ? `?${queryString}` : ''}`);
   }
 
   async getTask(id: string): Promise<ApiResponse<TaskDetailsDto>> {
-    // Mock implementation
-    const mockTask: TaskDetailsDto = {
-      id: '12345',
-      name: 'Review Document',
-      assignee: 'Sarah Johnson',
-      candidateGroups: ['Legal Team'],
-      status: 'IN_PROGRESS',
-      dueDate: '2024-03-25',
-      processInstanceId: '67890',
-      processDefinitionId: 'document-review-process',
-      processDefinitionKey: 'documentReview',
-      processVariables: {
-        document_name: 'Project Proposal.pdf',
-        reviewer: 'Sarah Johnson',
-        deadline: '2024-03-15',
-      },
-      createdDate: '2024-03-10',
-      lastModified: '2024-03-12',
-    };
-
-    return { data: mockTask, status: 200 };
+    return this.request(`/v1/tasks/${id}`);
   }
 
   async claimTask(id: string): Promise<ApiResponse<void>> {
@@ -216,53 +143,11 @@ class ApiClient {
 
   // Process endpoints
   async getProcessDefinitions(): Promise<ApiResponse<ProcessDefinition[]>> {
-    // Mock data
-    const mockProcesses: ProcessDefinition[] = [
-      {
-        id: 'onboarding-v1',
-        key: 'onboarding',
-        name: 'Onboarding',
-        version: 1,
-        description: 'New employee onboarding process.',
-        deploymentId: 'dep-001',
-        deploymentTime: '2024-01-15T10:00:00Z',
-        resourceName: 'onboarding.bpmn',
-      },
-      {
-        id: 'expense-report-v2',
-        key: 'expenseReport',
-        name: 'Expense Report',
-        version: 2,
-        description: 'Expense report submission and approval.',
-        deploymentId: 'dep-002',
-        deploymentTime: '2024-02-01T14:30:00Z',
-        resourceName: 'expense-report.bpmn',
-      },
-    ];
-
-    return { data: mockProcesses, status: 200 };
+    return this.request('/v1/processes/definitions');
   }
 
   async getProcessInstances(): Promise<ApiResponse<ProcessInstanceDTO[]>> {
-    // Mock data
-    const mockInstances: ProcessInstanceDTO[] = [
-      {
-        instanceId: 'inst-001',
-        processDefinitionId: 'onboarding-v1',
-        processDefinitionKey: 'onboarding',
-        currentActivityId: 'task-review-documents',
-        variables: {
-          employeeName: 'John Doe',
-          department: 'Engineering',
-          startDate: '2024-04-01',
-        },
-        status: 'RUNNING',
-        startDate: '2024-03-15T09:00:00Z',
-        startUserId: 'hr-manager',
-      },
-    ];
-
-    return { data: mockInstances, status: 200 };
+    return this.request('/v1/processes/instances');
   }
 
   async startProcess(processKey: string, variables?: Record<string, any>): Promise<ApiResponse<{ instanceId: string }>> {

@@ -19,10 +19,9 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Processes', href: '/processes' },
     { name: 'Tasks', href: '/tasks' },
-    { name: 'History', href: '/history' },
+    { name: 'Processes', href: '/processes' },
+    { name: 'Dashboard', href: '/dashboard' },
   ];
 
   const isActive = (href: string) => location.pathname.startsWith(href);
@@ -31,13 +30,15 @@ export function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center space-x-8">
+        <div className="flex h-16 items-center px-6">
+          <div className="flex items-center">
             <Link to="/tasks" className="flex items-center space-x-2">
               <CheckSquare className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold text-foreground">Tenda</span>
             </Link>
-            
+          </div>
+
+          <div className="flex-1 flex justify-center">
             <nav className="hidden md:flex space-x-6">
               {navigation.map((item) => (
                 <Link
@@ -59,7 +60,7 @@ export function Layout({ children }: LayoutProps) {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
