@@ -183,93 +183,75 @@ export default function TaskDetail() {
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Task Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Task Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Task ID</p>
-                    <p className="font-medium">#{task.id}</p>
-                  </div>
-                  
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge variant={getStatusBadgeVariant(task.status)} className="mt-1">
-                      {getStatusLabel(task.status)}
-                    </Badge>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Task Name</p>
-                    <p className="font-medium">{task.name}</p>
-                  </div>
-                  
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Assignee</p>
-                    <p className="font-medium">{task.assignee || 'Unassigned'}</p>
-                  </div>
-                </div>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Task Information</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Task ID</p>
+                <p className="font-medium text-foreground">#{task.id}</p>
               </div>
-            </CardContent>
-          </Card>
+              
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Task Name</p>
+                <p className="font-medium text-foreground">{task.name}</p>
+              </div>
+              
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Status</p>
+                <Badge variant={getStatusBadgeVariant(task.status)} className="mt-1">
+                  {getStatusLabel(task.status)}
+                </Badge>
+              </div>
+              
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Assignee</p>
+                <p className="font-medium text-foreground">{task.assignee || 'Unassigned'}</p>
+              </div>
+            </div>
+          </div>
 
           {/* Process Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Process Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Process ID</p>
-                    <p className="font-medium">#{task.processInstanceId}</p>
-                  </div>
-                  
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Started By</p>
-                    <p className="font-medium">Michael Chen</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Process Name</p>
-                    <p className="font-medium">Document Review Process</p>
-                  </div>
-                </div>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Process Information</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Process ID</p>
+                <p className="font-medium text-foreground">#{task.processInstanceId}</p>
               </div>
-            </CardContent>
-          </Card>
+              
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Process Name</p>
+                <p className="font-medium text-foreground">Document Review Process</p>
+              </div>
+              
+              <div className="bg-muted p-4 rounded-lg col-span-2">
+                <p className="text-sm text-muted-foreground mb-1">Started By</p>
+                <p className="font-medium text-foreground">Michael Chen</p>
+              </div>
+            </div>
+          </div>
 
           {/* Variables */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Variables</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-primary/5 p-4 rounded-lg border">
-                <pre className="text-sm font-mono text-foreground overflow-x-auto">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Variables</h2>
+            <div className="bg-slate-800 p-4 rounded-lg">
+              <pre className="text-sm font-mono text-white overflow-x-auto">
+                <code className="text-white">
                   {JSON.stringify(task.processVariables || {}, null, 2)}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
+                </code>
+              </pre>
+            </div>
+          </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-end space-x-3 pt-4">
             <Button
               variant="outline"
               onClick={handleClaim}
               disabled={actionLoading || task.status === 'COMPLETED'}
-              className="border-info text-info hover:bg-info hover:text-info-foreground"
+              className="bg-blue-500 text-white border-blue-500 hover:bg-blue-600 hover:border-blue-600"
             >
               <Star className="mr-2 h-4 w-4" />
               Claim
@@ -278,7 +260,7 @@ export default function TaskDetail() {
             <Button
               onClick={handleComplete}
               disabled={actionLoading || task.status === 'COMPLETED'}
-              className="bg-accent hover:bg-accent/90"
+              className="bg-green-500 text-white hover:bg-green-600"
             >
               <CheckCircle className="mr-2 h-4 w-4" />
               Complete
