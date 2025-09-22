@@ -4,24 +4,24 @@ import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Calendar } from 'lucide-react';
-import { apiClient, TaskDetailsDto } from '@/lib/api';
+import { Plus, Search } from 'lucide-react';
+import { apiClient, TaskDetailsDto, TaskStatus } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { formatDistanceToNow, getTaskStatusColors } from '@/lib/utils';
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<TaskDetailsDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [assigneeFilter, setAssigneeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
   const { toast } = useToast();
 
   const fetchTasks = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getTasks();
+      const response = await apiClient.getTasks({ status: statusFilter === 'all' ? undefined : statusFilter });
       if (response.data) {
         setTasks(response.data);
       } else {
@@ -44,48 +44,27 @@ export default function Tasks() {
 
   useEffect(() => {
     fetchTasks();
-    
-    // Poll for updates every 15 seconds
-    const interval = setInterval(fetchTasks, 15000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [statusFilter]);
 
-  const getStatusBadgeVariant = (status: TaskDetailsDto['status']) => {
-    switch (status) {
-      case 'COMPLETED':
-        return 'default';
-      case 'IN_PROGRESS':
-        return 'secondary';
-      case 'CREATED':
-        return 'outline';
-      default:
-        return 'outline';
-    }
-  };
-
-  const getStatusLabel = (status: TaskDetailsDto['status']) => {
+  const getStatusLabel = (status: TaskStatus) => {
     switch (status) {
       case 'COMPLETED':
         return 'Completed';
-      case 'IN_PROGRESS':
-        return 'In Progress';
-      case 'CREATED':
-        return 'Pending';
+      case 'CLAIMED':
+        return 'Claimed';
+      case 'AVAILABLE':
+        return 'Available';
+      case 'FAILED':
+        return 'Failed';
       default:
         return status;
     }
   };
 
   const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.assignee?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-    const matchesAssignee = assigneeFilter === 'all' || task.assignee === assigneeFilter;
-    
-    return matchesSearch && matchesStatus && matchesAssignee;
+    return task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           task.assignee?.toLowerCase().includes(searchTerm.toLowerCase());
   });
-
-  const uniqueAssignees = [...new Set(tasks.map(task => task.assignee).filter(Boolean))];
 
   return (
     <Layout>
@@ -116,42 +95,19 @@ export default function Tasks() {
                   />
                 </div>
               </div>
-              
               <div className="w-full md:w-48">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TaskStatus | 'all')}>
                   <SelectTrigger>
                     <SelectValue placeholder="Status: All" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Status: All</SelectItem>
-                    <SelectItem value="CREATED">Pending</SelectItem>
-                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                    <SelectItem value="AVAILABLE">Available</SelectItem>
+                    <SelectItem value="CLAIMED">Claimed</SelectItem>
                     <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="FAILED">Failed</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="w-full md:w-48">
-                <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Assignee: All" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Assignee: All</SelectItem>
-                    {uniqueAssignees.map(assignee => (
-                      <SelectItem key={assignee} value={assignee!}>
-                        {assignee}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full md:w-48">
-                <Input
-                  type="date"
-                  placeholder="mm/dd/yyyy"
-                />
               </div>
             </div>
           </CardContent>
@@ -167,20 +123,21 @@ export default function Tasks() {
                     <th className="text-left p-4 text-sm font-semibold text-muted-foreground">TASK NAME</th>
                     <th className="text-left p-4 text-sm font-semibold text-muted-foreground">ASSIGNEE</th>
                     <th className="text-left p-4 text-sm font-semibold text-muted-foreground">CANDIDATE GROUPS</th>
-                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">DUE DATE</th>
+                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">START DATE</th>
+                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">END DATE</th>
                     <th className="text-left p-4 text-sm font-semibold text-muted-foreground">STATUS</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="text-center p-8 text-muted-foreground">
+                      <td colSpan={6} className="text-center p-8 text-muted-foreground">
                         Loading tasks...
                       </td>
                     </tr>
                   ) : filteredTasks.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="text-center p-8 text-muted-foreground">
+                      <td colSpan={6} className="text-center p-8 text-muted-foreground">
                         No tasks found
                       </td>
                     </tr>
@@ -202,10 +159,13 @@ export default function Tasks() {
                           {task.candidateGroups?.join(', ') || '-'}
                         </td>
                         <td className="p-4 text-sm text-muted-foreground">
-                          {task.dueDate || '-'}
+                          {formatDistanceToNow(task.startDate)}
+                        </td>
+                        <td className="p-4 text-sm text-muted-foreground">
+                          {formatDistanceToNow(task.endDate)}
                         </td>
                         <td className="p-4">
-                          <Badge variant={getStatusBadgeVariant(task.status)}>
+                          <Badge className={getTaskStatusColors(task.status)}>
                             {getStatusLabel(task.status)}
                           </Badge>
                         </td>

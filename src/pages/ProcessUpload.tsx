@@ -58,9 +58,9 @@ export default function ProcessUpload() {
     setUploading(true);
     try {
       const response = await apiClient.deployProcess(file);
-      if (response.data || response.status === 200) {
+      if (response.data?.status === 'Deployed') {
         setUploaded(true);
-        setDeployedProcess('Customer Onboarding'); // Mock process name
+        setDeployedProcess(file.name);
         toast({
           title: "Process deployed successfully",
           description: `${file.name} has been deployed`,
@@ -163,9 +163,9 @@ export default function ProcessUpload() {
                   </div>
                   
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => navigate('/processes')}>
                       <Eye className="mr-2 h-4 w-4" />
-                      View Process
+                      View Processes
                     </Button>
                   </div>
                 </div>

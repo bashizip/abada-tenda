@@ -2,10 +2,18 @@ import { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Play, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient, ProcessDefinition } from '@/lib/api';
@@ -17,6 +25,7 @@ export default function Processes() {
   const [selectedProcess, setSelectedProcess] = useState('');
   const [variables, setVariables] = useState('');
   const [startingProcess, setStartingProcess] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -29,6 +38,8 @@ export default function Processes() {
       const response = await apiClient.getProcessDefinitions();
       if (response.data) {
         setProcesses(response.data);
+      } else {
+        setProcesses([]);
       }
     } catch (error) {
       toast({
@@ -70,7 +81,7 @@ export default function Processes() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to start process",
+          description: response.error || "Failed to start process",
         });
       }
     } catch (error) {
@@ -89,53 +100,14 @@ export default function Processes() {
       }
     } finally {
       setStartingProcess(false);
+      setIsConfirmOpen(false);
     }
   };
 
-  const mockProcesses = [
-    {
-      id: 'onboarding-v1',
-      key: 'onboarding',
-      name: 'Onboarding',
-      version: '1.0',
-      description: 'New employee onboarding process.',
-    },
-    {
-      id: 'expense-report-v2',
-      key: 'expenseReport',
-      name: 'Expense Report',
-      version: '2.1',
-      description: 'Expense report submission and approval.',
-    },
-    {
-      id: 'vacation-request-v1',
-      key: 'vacationRequest',
-      name: 'Vacation Request',
-      version: '1.5',
-      description: 'Employee vacation request process.',
-    },
-    {
-      id: 'incident-report-v1',
-      key: 'incidentReport',
-      name: 'Incident Report',
-      version: '1.2',
-      description: 'IT incident reporting and resolution.',
-    },
-    {
-      id: 'customer-feedback-v1',
-      key: 'customerFeedback',
-      name: 'Customer Feedback',
-      version: '1.0',
-      description: 'Collect and analyze customer feedback.',
-    },
-    {
-      id: 'hardware-request-v1',
-      key: 'hardwareRequest',
-      name: 'Hardware Request',
-      version: '1.1',
-      description: 'Request new hardware for employees.',
-    },
-  ];
+  const handleOpenConfirmDialog = (processId: string) => {
+    setSelectedProcess(processId);
+    setIsConfirmOpen(true);
+  }
 
   return (
     <Layout>
@@ -154,29 +126,37 @@ export default function Processes() {
         </div>
 
         {/* Process Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {mockProcesses.map((process) => (
-            <Card key={process.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold">{process.name}</CardTitle>
-                  <Badge variant="outline" className="text-sm font-semibold">{process.version}</Badge>
-                </div>
-                <CardDescription className="text-sm text-muted-foreground">{process.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full border-info text-info hover:bg-info hover:text-info-foreground text-sm font-medium"
-                  onClick={() => setSelectedProcess(process.key)}
-                >
-                  Start
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center p-8">Loading processes...</div>
+        ) : processes.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {processes.map((process) => (
+              <Card key={process.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold">{process.name}</CardTitle>
+                  </div>
+                  <CardDescription className="text-sm text-muted-foreground pt-2">{process.documentation || 'No documentation available.'}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-info text-info hover:bg-info hover:text-info-foreground text-sm font-medium"
+                    onClick={() => handleOpenConfirmDialog(process.id)}
+                  >
+                    Start
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center p-8 border rounded-md">
+            <h3 className="text-lg font-semibold">No Processes Found</h3>
+            <p className="text-muted-foreground">There are no available processes to display.</p>
+          </div>
+        )}
 
         {/* Start Process Form */}
         <Card>
@@ -191,9 +171,9 @@ export default function Processes() {
                   <SelectValue placeholder="Choose a process to start..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockProcesses.map((process) => (
-                    <SelectItem key={process.key} value={process.key}>
-                      {process.name} (v{process.version})
+                  {processes.map((process) => (
+                    <SelectItem key={process.id} value={process.id}>
+                      {process.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -216,8 +196,8 @@ export default function Processes() {
             </div>
 
             <div className="flex justify-end">
-              <Button
-                onClick={handleStartProcess}
+               <Button
+                onClick={() => setIsConfirmOpen(true)}
                 disabled={startingProcess || !selectedProcess}
                 className="bg-primary hover:bg-primary/90 text-sm font-semibold"
               >
@@ -228,6 +208,24 @@ export default function Processes() {
           </CardContent>
         </Card>
       </div>
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
+              This will start a new instance of the process.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleStartProcess} disabled={startingProcess}>
+              {startingProcess ? 'Starting...' : 'Confirm'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

@@ -1,3 +1,6 @@
+export const TEST_USER = 'alice';
+export const TEST_GROUPS = 'Customers';
+
 export interface User {
   id: string;
   username: string;
@@ -10,27 +13,27 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
-export const AUTH_TOKEN_KEY = 'auth_token';
-export const AUTH_USER_KEY = 'auth_user';
+const AUTH_TOKEN_KEY = 'auth_token';
+const USER_INFO_KEY = 'user_info';
 
 export function getStoredAuth(): AuthState {
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
-  const userStr = localStorage.getItem(AUTH_USER_KEY);
-  
-  if (token && userStr) {
+  const userJson = localStorage.getItem(USER_INFO_KEY);
+
+  if (token && userJson) {
     try {
-      const user = JSON.parse(userStr);
+      const user = JSON.parse(userJson);
       return {
         user,
         token,
         isAuthenticated: true,
       };
-    } catch {
-      // Clear invalid data
+    } catch (e) {
+      console.error("Failed to parse user info from localStorage", e);
       clearAuth();
     }
   }
-  
+
   return {
     user: null,
     token: null,
@@ -38,28 +41,12 @@ export function getStoredAuth(): AuthState {
   };
 }
 
-export function setAuth(token: string, user: User): void {
+export function setAuth(token: string, user: User) {
   localStorage.setItem(AUTH_TOKEN_KEY, token);
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
 }
 
-export function clearAuth(): void {
+export function clearAuth() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(AUTH_USER_KEY);
-}
-
-export function isTokenExpired(token: string): boolean {
-  try {
-    // For mock JWT, we'll just check if it exists and is recent
-    const parts = token.split('-');
-    if (parts.length === 3 && parts[0] === 'mock' && parts[1] === 'jwt' && parts[2] === 'token') {
-      const timestamp = parseInt(parts[3] || '0');
-      const now = Date.now();
-      // Consider token expired after 24 hours
-      return (now - timestamp) > (24 * 60 * 60 * 1000);
-    }
-    return false;
-  } catch {
-    return true;
-  }
+  localStorage.removeItem(USER_INFO_KEY);
 }

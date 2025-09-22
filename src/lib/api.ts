@@ -1,3 +1,5 @@
+import { TEST_USER, TEST_GROUPS } from './auth';
+
 const API_BASE_URL = 'http://localhost:5601/abada/api';
 
 export interface ApiResponse<T> {
@@ -6,44 +8,33 @@ export interface ApiResponse<T> {
   status: number;
 }
 
+export type TaskStatus = 'AVAILABLE' | 'CLAIMED' | 'COMPLETED' | 'FAILED';
+
 export interface TaskDetailsDto {
   id: string;
   name: string;
   assignee?: string;
+  status: TaskStatus;
   candidateGroups?: string[];
-  status: 'CREATED' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED';
-  dueDate?: string;
   processInstanceId: string;
-  processDefinitionId: string;
-  processDefinitionKey: string;
-  processVariables?: Record<string, any>;
-  formVariables?: Record<string, any>;
-  createdDate: string;
-  lastModified: string;
+  variables?: Record<string, any>;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface ProcessInstanceDTO {
-  instanceId: string;
-  processDefinitionId: string;
-  processDefinitionKey: string;
-  currentActivityId?: string;
+  id: string;
+  currentActivityId: string;
   variables: Record<string, any>;
-  status: 'RUNNING' | 'COMPLETED' | 'SUSPENDED';
+  isCompleted: boolean;
   startDate: string;
   endDate?: string;
-  startUserId?: string;
 }
 
 export interface ProcessDefinition {
   id: string;
-  key: string;
   name: string;
-  version: number;
-  description?: string;
   documentation?: string;
-  deploymentId: string;
-  deploymentTime: string;
-  resourceName: string;
 }
 
 export interface LoginRequest {
@@ -63,10 +54,17 @@ export interface LoginResponse {
 class ApiClient {
   private getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('auth_token');
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      'X-User': TEST_USER,
+      'X-Groups': TEST_GROUPS,
     };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return headers;
   }
 
   private async request<T>(
@@ -74,18 +72,37 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
+      const defaultHeaders = this.getAuthHeaders();
+      const customHeaders = options.headers || {};
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        headers: this.getAuthHeaders(),
         ...options,
+        headers: {
+          ...defaultHeaders,
+          ...customHeaders,
+        },
       });
 
-      const data = response.ok ? await response.json() : null;
+      if (response.ok) {
+        if (response.status === 204 || response.headers.get('Content-Length') === '0') {
+          return { data: undefined, status: response.status };
+        }
+        const data = await response.json();
+        return { data, status: response.status };
+      }
 
-      return {
-        data,
-        status: response.status,
-        error: !response.ok ? `HTTP ${response.status}: ${response.statusText}` : undefined,
-      };
+      // Handle error responses
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (errorData && errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch (e) {
+        // Not a JSON error response, or empty body. Use default message.
+      }
+      return { status: response.status, error: errorMessage };
+
     } catch (error) {
       return {
         status: 0,
@@ -114,13 +131,9 @@ class ApiClient {
   // Task endpoints
   async getTasks(filters?: {
     status?: string;
-    assignee?: string;
-    dueBefore?: string;
   }): Promise<ApiResponse<TaskDetailsDto[]>> {
     const queryParams = new URLSearchParams();
     if (filters?.status) queryParams.append('status', filters.status);
-    if (filters?.assignee) queryParams.append('assignee', filters.assignee);
-    if (filters?.dueBefore) queryParams.append('dueBefore', filters.dueBefore);
     const queryString = queryParams.toString();
 
     return this.request(`/v1/tasks${queryString ? `?${queryString}` : ''}`);
@@ -130,43 +143,56 @@ class ApiClient {
     return this.request(`/v1/tasks/${id}`);
   }
 
-  async claimTask(id: string): Promise<ApiResponse<void>> {
-    return this.request(`/v1/tasks/${id}/claim`, { method: 'POST' });
+  async claimTask(taskId: string): Promise<ApiResponse<{ status: string; taskId: string }>> {
+    return this.request(`/v1/tasks/claim?taskId=${encodeURIComponent(taskId)}`, { method: 'POST' });
   }
 
-  async completeTask(id: string, variables?: Record<string, any>): Promise<ApiResponse<void>> {
-    return this.request(`/v1/tasks/${id}/complete`, {
+  async completeTask(taskId: string, variables?: Record<string, any>): Promise<ApiResponse<{ status: string; taskId: string }>> {
+    const endpoint = `/v1/tasks/complete?taskId=${encodeURIComponent(taskId)}`;
+    return this.request(endpoint, {
       method: 'POST',
       body: variables ? JSON.stringify(variables) : undefined,
     });
   }
 
+  async failTask(taskId: string): Promise<ApiResponse<{ status: string; taskId: string }>> {
+    const endpoint = `/v1/tasks/fail?taskId=${encodeURIComponent(taskId)}`;
+    return this.request(endpoint, { method: 'POST' });
+  }
+
   // Process endpoints
   async getProcessDefinitions(): Promise<ApiResponse<ProcessDefinition[]>> {
-    return this.request('/v1/processes/definitions');
+    return this.request('/v1/processes');
   }
 
   async getProcessInstances(): Promise<ApiResponse<ProcessInstanceDTO[]>> {
     return this.request('/v1/processes/instances');
   }
 
-  async startProcess(processKey: string, variables?: Record<string, any>): Promise<ApiResponse<{ instanceId: string }>> {
-    return this.request('/v1/processes/start', {
+  async startProcess(processId: string, variables?: Record<string, any>): Promise<ApiResponse<{ processInstanceId: string }>> {
+    const endpoint = `/v1/processes/start?processId=${encodeURIComponent(processId)}`;
+    return this.request(endpoint, {
       method: 'POST',
-      body: JSON.stringify({ processKey, variables }),
+      body: variables ? JSON.stringify(variables) : undefined,
     });
   }
 
-  async deployProcess(file: File): Promise<ApiResponse<{ deploymentId: string }>> {
+  async failProcessInstance(instanceId: string): Promise<ApiResponse<{ status: string; processInstanceId: string }>> {
+    const endpoint = `/v1/processes/instance/${encodeURIComponent(instanceId)}/fail`;
+    return this.request(endpoint, { method: 'POST' });
+  }
+
+  async deployProcess(file: File): Promise<ApiResponse<{ status: string }>> {
     const formData = new FormData();
     formData.append('file', file);
+
+    const headers = this.getAuthHeaders();
+    delete (headers as any)['Content-Type']; // Let the browser set the Content-Type for FormData
 
     return this.request('/v1/processes/deploy', {
       method: 'POST',
       body: formData,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-      },
+      headers: headers,
     });
   }
 }
