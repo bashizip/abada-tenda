@@ -143,7 +143,7 @@ export default function Processes() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Process List</h1>
-            <p className="text-muted-foreground mt-1">Browse and start available processes.</p>
+            <p className="text-sm text-muted-foreground mt-1">Browse and start available processes.</p>
           </div>
           <Link to="/processes/upload">
             <Button className="bg-accent hover:bg-accent/90">
@@ -159,16 +159,16 @@ export default function Processes() {
             <Card key={process.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{process.name}</CardTitle>
-                  <Badge variant="outline">{process.version}</Badge>
+                  <CardTitle className="text-lg font-semibold">{process.name}</CardTitle>
+                  <Badge variant="outline" className="text-sm font-semibold">{process.version}</Badge>
                 </div>
-                <CardDescription>{process.description}</CardDescription>
+                <CardDescription className="text-sm text-muted-foreground">{process.description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full border-info text-info hover:bg-info hover:text-info-foreground"
+                  className="w-full border-info text-info hover:bg-info hover:text-info-foreground text-sm font-medium"
                   onClick={() => setSelectedProcess(process.key)}
                 >
                   Start
@@ -181,13 +181,13 @@ export default function Processes() {
         {/* Start Process Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Start a New Process Instance</CardTitle>
+            <CardTitle className="text-xl font-semibold">Start a New Process Instance</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="process-select">Select Process</Label>
+              <Label htmlFor="process-select" className="text-sm font-medium">Select Process</Label>
               <Select value={selectedProcess} onValueChange={setSelectedProcess}>
-                <SelectTrigger id="process-select">
+                <SelectTrigger id="process-select" className="text-sm">
                   <SelectValue placeholder="Choose a process to start..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,14 +201,14 @@ export default function Processes() {
             </div>
 
             <div>
-              <Label htmlFor="variables">Initial Variables (JSON format)</Label>
+              <Label htmlFor="variables" className="text-sm font-medium">Initial Variables (JSON format)</Label>
               <Textarea
                 id="variables"
                 placeholder='{ "employeeName": "John Doe", "department": "Engineering" }'
                 value={variables}
                 onChange={(e) => setVariables(e.target.value)}
                 rows={6}
-                className="font-mono text-sm"
+                className="font-mono text-sm placeholder:text-muted-foreground"
               />
               <p className="text-sm text-muted-foreground mt-2">
                 Provide initial data for the process if required.
@@ -219,7 +219,7 @@ export default function Processes() {
               <Button
                 onClick={handleStartProcess}
                 disabled={startingProcess || !selectedProcess}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-primary hover:bg-primary/90 text-sm font-semibold"
               >
                 <Play className="mr-2 h-4 w-4" />
                 {startingProcess ? 'Starting...' : 'Start Process'}

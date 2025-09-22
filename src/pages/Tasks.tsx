@@ -93,7 +93,7 @@ export default function Tasks() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">My Tasks</h1>
-            <p className="text-muted-foreground mt-1">Manage and track your assigned tasks</p>
+            <p className="text-sm text-muted-foreground mt-1">Manage and track your assigned tasks</p>
           </div>
           <Button className="bg-accent hover:bg-accent/90">
             <Plus className="mr-2 h-4 w-4" />
@@ -112,7 +112,7 @@ export default function Tasks() {
                     placeholder="Search tasks..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 text-sm placeholder:text-muted-foreground"
                   />
                 </div>
               </div>
@@ -164,11 +164,11 @@ export default function Tasks() {
               <table className="w-full">
                 <thead className="border-b border-border">
                   <tr>
-                    <th className="text-left p-4 font-medium text-muted-foreground">TASK NAME</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">ASSIGNEE</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">CANDIDATE GROUPS</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">DUE DATE</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">STATUS</th>
+                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">TASK NAME</th>
+                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">ASSIGNEE</th>
+                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">CANDIDATE GROUPS</th>
+                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">DUE DATE</th>
+                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">STATUS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -190,18 +190,18 @@ export default function Tasks() {
                         <td className="p-4">
                           <Link
                             to={`/tasks/${task.id}`}
-                            className="font-medium text-foreground hover:text-primary"
+                            className="text-sm font-semibold text-foreground hover:text-primary"
                           >
                             {task.name}
                           </Link>
                         </td>
-                        <td className="p-4 text-muted-foreground">
+                        <td className="p-4 text-sm text-muted-foreground">
                           {task.assignee || '-'}
                         </td>
-                        <td className="p-4 text-muted-foreground">
+                        <td className="p-4 text-sm text-muted-foreground">
                           {task.candidateGroups?.join(', ') || '-'}
                         </td>
-                        <td className="p-4 text-muted-foreground">
+                        <td className="p-4 text-sm text-muted-foreground">
                           {task.dueDate || '-'}
                         </td>
                         <td className="p-4">

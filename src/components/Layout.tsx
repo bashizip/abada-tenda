@@ -35,7 +35,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex items-center space-x-8">
             <Link to="/tasks" className="flex items-center space-x-2">
               <CheckSquare className="h-8 w-8 text-primary" />
-              <span className="text-xl font-semibold text-foreground">Tenda</span>
+              <span className="text-2xl font-bold text-foreground">Tenda</span>
             </Link>
             
             <nav className="hidden md:flex space-x-6">
@@ -45,7 +45,7 @@ export function Layout({ children }: LayoutProps) {
                   to={item.href}
                   className={`text-sm font-medium transition-colors hover:text-primary ${
                     isActive(item.href)
-                      ? 'text-primary'
+                      ? 'text-primary font-semibold'
                       : 'text-muted-foreground'
                   }`}
                 >

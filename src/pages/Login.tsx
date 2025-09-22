@@ -34,39 +34,41 @@ export default function Login() {
             <CheckSquare className="h-8 w-8 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm text-muted-foreground">
             Login to your Tenda account.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-sm font-medium">Username</Label>
               <Input
                 id="username"
                 type="text"
                 placeholder="Username"
                 value={credentials.username}
                 onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                className="text-sm placeholder:text-muted-foreground"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="Password"
                 value={credentials.password}
                 onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                className="text-sm placeholder:text-muted-foreground"
                 required
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90"
+              className="w-full bg-primary hover:bg-primary/90 text-sm font-semibold"
               disabled={loading}
             >
               {loading ? 'Logging in...' : 'Log In'}

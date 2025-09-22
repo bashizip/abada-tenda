@@ -8,6 +8,10 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Typography */
+    --font-geist-sans: 'Geist', sans-serif;
+    --font-geist-mono: 'Geist Mono', monospace;
+    
     --background: 240 6% 97%;
     --foreground: 215 20% 22%;
 
@@ -109,6 +113,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-geist-sans);
   }
 }
