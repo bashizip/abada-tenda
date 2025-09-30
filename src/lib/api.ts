@@ -4,7 +4,7 @@ const API_BASE_URL = 'http://localhost:5601/abada/api';
 
 export interface ApiResponse<T> {
   data?: T;
-  error?: string;
+  error?: any;
   status: number;
 }
 
@@ -91,22 +91,26 @@ class ApiClient {
         return { data, status: response.status };
       }
 
-      // Handle error responses
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      // Handle API error responses
+      let errorPayload: any = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const errorData = await response.json();
-        if (errorData && errorData.error) {
-          errorMessage = errorData.error;
+        errorPayload = errorData;
+        if (response.status === 400) {
+          console.error("API Error (400):", errorData);
         }
       } catch (e) {
-        // Not a JSON error response, or empty body. Use default message.
+        // Not a JSON error response, or empty body. Use the string.
       }
-      return { status: response.status, error: errorMessage };
+      return { status: response.status, error: errorPayload };
 
     } catch (error) {
+      // Handle network errors
+      const errorMessage = error instanceof Error ? error.message : 'Network error';
+      console.error("Network Error:", errorMessage);
       return {
         status: 0,
-        error: error instanceof Error ? error.message : 'Network error',
+        error: errorMessage,
       };
     }
   }

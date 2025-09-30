@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { AuthState, getStoredAuth, setAuth, clearAuth, User } from '@/lib/auth';
 import { apiClient, LoginRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { ApiErrorToast } from './ApiErrorToast';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<boolean>;
@@ -19,41 +20,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (credentials: LoginRequest): Promise<boolean> => {
     setLoading(true);
-    try {
-      const response = await apiClient.login(credentials);
-      
-      if (response.data) {
-        const { token, user } = response.data;
-        setAuth(token, user);
-        setAuthState({
-          user,
-          token,
-          isAuthenticated: true,
-        });
-        
-        toast({
-          title: "Welcome back!",
-          description: `Logged in as ${user.username}`,
-        });
-        
-        return true;
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: response.error || "Invalid credentials",
-        });
-        return false;
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Login error",
-        description: "Something went wrong. Please try again.",
+    const response = await apiClient.login(credentials);
+    setLoading(false);
+
+    if (response.data) {
+      const { token, user } = response.data;
+      setAuth(token, user);
+      setAuthState({
+        user,
+        token,
+        isAuthenticated: true,
       });
+      
+      toast({
+        title: "Welcome back!",
+        description: `Logged in as ${user.username}`,
+      });
+      
+      return true;
+    } else {
+      toast(ApiErrorToast({ error: response.error, defaultMessage: "Invalid credentials" }));
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 

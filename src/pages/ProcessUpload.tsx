@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Upload, CheckCircle, Eye } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { ApiErrorToast } from '@/components/ApiErrorToast';
 
 export default function ProcessUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -14,6 +15,7 @@ export default function ProcessUpload() {
   const [deployedProcess, setDeployedProcess] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -66,21 +68,17 @@ export default function ProcessUpload() {
           description: `${file.name} has been deployed`,
         });
       } else {
-        toast({
-          variant: "destructive",
-          title: "Upload failed",
-          description: response.error || "Failed to deploy process",
-        });
+        toast(ApiErrorToast({ error: response.error, defaultMessage: "Failed to deploy process" }));
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Upload error",
-        description: "Failed to upload the process file",
-      });
+      toast(ApiErrorToast({ error: error, defaultMessage: "Failed to upload the process file" }));
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -116,18 +114,17 @@ export default function ProcessUpload() {
                 </h3>
                 <p className="text-muted-foreground mb-4">or</p>
                 
-                <label htmlFor="file-upload">
-                  <Button variant="outline" className="cursor-pointer">
-                    Browse Files
-                  </Button>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    accept=".bpmn,.xml"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                </label>
+                <Button variant="outline" className="cursor-pointer" onClick={handleBrowseClick}>
+                  Browse Files
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  id="file-upload"
+                  type="file"
+                  accept=".bpmn,.xml"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
                 
                 {file && (
                   <div className="mt-4 p-4 bg-muted rounded-lg">

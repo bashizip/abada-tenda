@@ -1,5 +1,5 @@
 export const TEST_USER = 'alice';
-export const TEST_GROUPS = 'Customers';
+export const TEST_GROUPS = 'customers';
 
 export interface User {
   id: string;

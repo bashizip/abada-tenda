@@ -10,6 +10,7 @@ import { Plus, Search } from 'lucide-react';
 import { apiClient, TaskDetailsDto, TaskStatus } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow, getTaskStatusColors } from '@/lib/utils';
+import { ApiErrorToast } from '@/components/ApiErrorToast';
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<TaskDetailsDto[]>([]);
@@ -20,26 +21,13 @@ export default function Tasks() {
 
   const fetchTasks = async () => {
     setLoading(true);
-    try {
-      const response = await apiClient.getTasks({ status: statusFilter === 'all' ? undefined : statusFilter });
-      if (response.data) {
-        setTasks(response.data);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch tasks",
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch tasks",
-      });
-    } finally {
-      setLoading(false);
+    const response = await apiClient.getTasks({ status: statusFilter === 'all' ? undefined : statusFilter });
+    if (response.data) {
+      setTasks(response.data);
+    } else {
+      toast(ApiErrorToast({ error: response.error, defaultMessage: "Failed to fetch tasks" }));
     }
+    setLoading(false);
   };
 
   useEffect(() => {

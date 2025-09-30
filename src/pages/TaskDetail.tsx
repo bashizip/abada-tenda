@@ -16,6 +16,9 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
+import { ApiErrorToast } from '@/components/ApiErrorToast';
+import JSONInput from 'react-json-editor-ajrm';
+import locale from 'react-json-editor-ajrm/locale/en';
 
 export default function TaskDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +29,7 @@ export default function TaskDetail() {
   const [isClaimConfirmOpen, setIsClaimConfirmOpen] = useState(false);
   const [isCompleteConfirmOpen, setIsCompleteConfirmOpen] = useState(false);
   const [isFailConfirmOpen, setIsFailConfirmOpen] = useState(false);
+  const [completionVariables, setCompletionVariables] = useState({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,25 +40,12 @@ export default function TaskDetail() {
 
   const fetchTask = async (taskId: string) => {
     setLoading(true);
-    try {
-      const response = await apiClient.getTask(taskId);
-      if (response.data) {
-        setTask(response.data);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch task details",
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch task details",
-      });
-    } finally {
-      setLoading(false);
+    const response = await apiClient.getTask(taskId);
+    setLoading(false);
+    if (response.data) {
+      setTask(response.data);
+    } else {
+      toast(ApiErrorToast({ error: response.error, defaultMessage: "Failed to fetch task details" }));
     }
   };
 
@@ -62,30 +53,18 @@ export default function TaskDetail() {
     if (!task) return;
 
     setActionLoading(true);
-    try {
-      const response = await apiClient.claimTask(task.id);
-      if (response.data?.status === 'Claimed') {
-        toast({
-          title: "Task claimed",
-          description: "You have successfully claimed this task",
-        });
-        fetchTask(task.id);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: response.error || "Failed to claim task",
-        });
-      }
-    } catch (error) {
+    const response = await apiClient.claimTask(task.id);
+    setActionLoading(false);
+    setIsClaimConfirmOpen(false);
+
+    if (response.data?.status === 'Claimed') {
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to claim task",
+        title: "Task claimed",
+        description: "You have successfully claimed this task",
       });
-    } finally {
-      setActionLoading(false);
-      setIsClaimConfirmOpen(false);
+      fetchTask(task.id);
+    } else {
+      toast(ApiErrorToast({ error: response.error, defaultMessage: "Failed to claim task" }));
     }
   };
 
@@ -93,30 +72,18 @@ export default function TaskDetail() {
     if (!task) return;
 
     setActionLoading(true);
-    try {
-      const response = await apiClient.completeTask(task.id);
-      if (response.data?.status === 'Completed') {
-        toast({
-          title: "Task completed",
-          description: "Task has been marked as completed",
-        });
-        navigate('/tasks');
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: response.error || "Failed to complete task",
-        });
-      }
-    } catch (error) {
+    const response = await apiClient.completeTask(task.id, completionVariables);
+    setActionLoading(false);
+    setIsCompleteConfirmOpen(false);
+
+    if (response.data?.status === 'Completed') {
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to complete task",
+        title: "Task completed",
+        description: "Task has been marked as completed",
       });
-    } finally {
-      setActionLoading(false);
-      setIsCompleteConfirmOpen(false);
+      navigate('/tasks');
+    } else {
+      toast(ApiErrorToast({ error: response.error, defaultMessage: "Failed to complete task" }));
     }
   };
 
@@ -124,30 +91,18 @@ export default function TaskDetail() {
     if (!task) return;
 
     setActionLoading(true);
-    try {
-      const response = await apiClient.failTask(task.id);
-      if (response.data?.status === 'Failed') {
-        toast({
-          title: "Task failed",
-          description: "Task has been marked as failed",
-        });
-        fetchTask(task.id);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: response.error || "Failed to fail task",
-        });
-      }
-    } catch (error) {
+    const response = await apiClient.failTask(task.id);
+    setActionLoading(false);
+    setIsFailConfirmOpen(false);
+
+    if (response.data?.status === 'Failed') {
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fail task",
+        title: "Task failed",
+        description: "Task has been marked as failed",
       });
-    } finally {
-      setActionLoading(false);
-      setIsFailConfirmOpen(false);
+      fetchTask(task.id);
+    } else {
+      toast(ApiErrorToast({ error: response.error, defaultMessage: "Failed to fail task" }));
     }
   };
 
@@ -327,19 +282,34 @@ export default function TaskDetail() {
         </DialogContent>
       </Dialog>
       <Dialog open={isCompleteConfirmOpen} onOpenChange={setIsCompleteConfirmOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[625px]">
           <DialogHeader>
-            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogTitle>Complete Task</DialogTitle>
             <DialogDescription>
-              This will complete the task.
+              Enter any variables to pass to the process upon completion.
             </DialogDescription>
           </DialogHeader>
+          <div className="py-4">
+            <JSONInput
+              id='completion-variables-editor'
+              placeholder={completionVariables}
+              locale={locale}
+              onChange={(data: any) => {
+                if (data.error === false) {
+                  setCompletionVariables(data.jsObject);
+                }
+              }}
+              height='250px'
+              width='100%'
+              theme="dark_vscode_tribute"
+            />
+          </div>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button onClick={handleComplete} disabled={actionLoading}>
-              {actionLoading ? 'Completing...' : 'Confirm'}
+              {actionLoading ? 'Completing...' : 'Confirm & Complete'}
             </Button>
           </DialogFooter>
         </DialogContent>

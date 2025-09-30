@@ -11,19 +11,20 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Play, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient, ProcessDefinition } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { ApiErrorToast } from '@/components/ApiErrorToast';
+import JSONInput from 'react-json-editor-ajrm';
+import locale from 'react-json-editor-ajrm/locale/en';
 
 export default function Processes() {
   const [processes, setProcesses] = useState<ProcessDefinition[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProcess, setSelectedProcess] = useState('');
-  const [variables, setVariables] = useState('');
+  const [selectedProcess, setSelectedProcess] = useState<ProcessDefinition | null>(null);
+  const [variables, setVariables] = useState({});
   const [startingProcess, setStartingProcess] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const { toast } = useToast();
@@ -40,72 +41,40 @@ export default function Processes() {
         setProcesses(response.data);
       } else {
         setProcesses([]);
+        toast(ApiErrorToast({ error: response.error, defaultMessage: "Failed to fetch processes" }));
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch processes",
-      });
+      toast(ApiErrorToast({ error: error, defaultMessage: "Failed to fetch processes" }));
     } finally {
       setLoading(false);
     }
   };
 
   const handleStartProcess = async () => {
-    if (!selectedProcess) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please select a process to start",
-      });
-      return;
-    }
+    if (!selectedProcess) return;
 
     setStartingProcess(true);
     try {
-      let parsedVariables = {};
-      if (variables.trim()) {
-        parsedVariables = JSON.parse(variables);
-      }
-
-      const response = await apiClient.startProcess(selectedProcess, parsedVariables);
+      const response = await apiClient.startProcess(selectedProcess.id, variables);
       if (response.data) {
         toast({
           title: "Process started",
-          description: `Process instance created successfully`,
+          description: `Process instance ${response.data.processInstanceId} created successfully`,
         });
-        setSelectedProcess('');
-        setVariables('');
+        setIsConfirmOpen(false);
+        setVariables({});
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: response.error || "Failed to start process",
-        });
+        toast(ApiErrorToast({ error: response.error, defaultMessage: "Failed to start process" }));
       }
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        toast({
-          variant: "destructive",
-          title: "Invalid JSON",
-          description: "Please check the variables format",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to start process",
-        });
-      }
+      toast(ApiErrorToast({ error: error, defaultMessage: "Failed to start process" }));
     } finally {
       setStartingProcess(false);
-      setIsConfirmOpen(false);
     }
   };
 
-  const handleOpenConfirmDialog = (processId: string) => {
-    setSelectedProcess(processId);
+  const handleOpenConfirmDialog = (process: ProcessDefinition) => {
+    setSelectedProcess(process);
     setIsConfirmOpen(true);
   }
 
@@ -120,7 +89,7 @@ export default function Processes() {
           <Link to="/processes/upload">
             <Button className="bg-accent hover:bg-accent/90">
               <Upload className="mr-2 h-4 w-4" />
-              Launch Process
+              Deploy Process
             </Button>
           </Link>
         </div>
@@ -143,7 +112,7 @@ export default function Processes() {
                     variant="outline"
                     size="sm"
                     className="w-full border-info text-info hover:bg-info hover:text-info-foreground text-sm font-medium"
-                    onClick={() => handleOpenConfirmDialog(process.id)}
+                    onClick={() => handleOpenConfirmDialog(process)}
                   >
                     Start
                   </Button>
@@ -157,75 +126,46 @@ export default function Processes() {
             <p className="text-muted-foreground">There are no available processes to display.</p>
           </div>
         )}
-
-        {/* Start Process Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold">Start a New Process Instance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="process-select" className="text-sm font-medium">Select Process</Label>
-              <Select value={selectedProcess} onValueChange={setSelectedProcess}>
-                <SelectTrigger id="process-select" className="text-sm">
-                  <SelectValue placeholder="Choose a process to start..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {processes.map((process) => (
-                    <SelectItem key={process.id} value={process.id}>
-                      {process.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="variables" className="text-sm font-medium">Initial Variables (JSON format)</Label>
-              <Textarea
-                id="variables"
-                placeholder='{ "employeeName": "John Doe", "department": "Engineering" }'
-                value={variables}
-                onChange={(e) => setVariables(e.target.value)}
-                rows={6}
-                className="font-mono text-sm placeholder:text-muted-foreground"
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                Provide initial data for the process if required.
-              </p>
-            </div>
-
-            <div className="flex justify-end">
-               <Button
-                onClick={() => setIsConfirmOpen(true)}
-                disabled={startingProcess || !selectedProcess}
-                className="bg-primary hover:bg-primary/90 text-sm font-semibold"
-              >
-                <Play className="mr-2 h-4 w-4" />
-                {startingProcess ? 'Starting...' : 'Start Process'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you sure?</DialogTitle>
-            <DialogDescription>
-              This will start a new instance of the process.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleStartProcess} disabled={startingProcess}>
-              {startingProcess ? 'Starting...' : 'Confirm'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+      {selectedProcess && (
+        <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+          <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+              <DialogTitle>Start Process: {selectedProcess.name}</DialogTitle>
+              <DialogDescription>
+                Enter any initial variables to pass to the process.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label htmlFor="variables-editor" className="text-sm font-medium">Initial Variables (JSON format)</Label>
+              <div className="mt-2">
+                <JSONInput
+                  id='variables-editor'
+                  placeholder={variables}
+                  locale={locale}
+                  onChange={(data: any) => {
+                    if (data.error === false) {
+                      setVariables(data.jsObject);
+                    }
+                  }}
+                  height='250px'
+                  width='100%'
+                  theme="dark_vscode_tribute"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button onClick={handleStartProcess} disabled={startingProcess}>
+                {startingProcess ? 'Starting...' : 'Confirm & Start'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Layout>
   );
 }
