@@ -55,7 +55,6 @@ class ApiClient {
   private getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('auth_token');
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       'X-User': TEST_USER,
       'X-Groups': TEST_GROUPS,
     };
@@ -72,15 +71,22 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-      const defaultHeaders = this.getAuthHeaders();
-      const customHeaders = options.headers || {};
+      const isFormData = options.body instanceof FormData;
+      const authHeaders = this.getAuthHeaders();
+      
+      const requestHeaders: Record<string, string> = {
+        ...authHeaders,
+        ...(options.headers as Record<string, string>),
+      };
+
+      // Only set Content-Type if it's not a FormData request
+      if (!isFormData) {
+        requestHeaders['Content-Type'] = 'application/json';
+      }
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
-        headers: {
-          ...defaultHeaders,
-          ...customHeaders,
-        },
+        headers: requestHeaders,
       });
 
       if (response.ok) {
@@ -91,7 +97,6 @@ class ApiClient {
         return { data, status: response.status };
       }
 
-      // Handle API error responses
       let errorPayload: any = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const errorData = await response.json();
@@ -100,12 +105,11 @@ class ApiClient {
           console.error("API Error (400):", errorData);
         }
       } catch (e) {
-        // Not a JSON error response, or empty body. Use the string.
+        // Not a JSON error response
       }
       return { status: response.status, error: errorPayload };
 
     } catch (error) {
-      // Handle network errors
       const errorMessage = error instanceof Error ? error.message : 'Network error';
       console.error("Network Error:", errorMessage);
       return {
@@ -190,13 +194,9 @@ class ApiClient {
     const formData = new FormData();
     formData.append('file', file);
 
-    const headers = this.getAuthHeaders();
-    delete (headers as any)['Content-Type']; // Let the browser set the Content-Type for FormData
-
     return this.request('/v1/processes/deploy', {
       method: 'POST',
       body: formData,
-      headers: headers,
     });
   }
 }
