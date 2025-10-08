@@ -12,7 +12,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from '@/components/ui/label';
-import { Upload } from 'lucide-react';
+import { Upload, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient, ProcessDefinition } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -100,22 +100,28 @@ export default function Processes() {
         ) : processes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {processes.map((process) => (
-              <Card key={process.id} className="hover:shadow-md transition-shadow">
+              <Card key={process.id} className="hover:shadow-md transition-shadow flex flex-col">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold">{process.name}</CardTitle>
                   </div>
                   <CardDescription className="text-sm text-muted-foreground pt-2">{process.documentation || 'No documentation available.'}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="mt-auto flex items-center space-x-2 pt-4">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full border-info text-info hover:bg-info hover:text-info-foreground text-sm font-medium"
+                    className="flex-1 border-info text-info hover:bg-info hover:text-info-foreground text-sm font-medium"
                     onClick={() => handleOpenConfirmDialog(process)}
                   >
                     Start
                   </Button>
+                  <Link to={`/processes/${process.id}`} className="flex-1">
+                    <Button variant="secondary" size="sm" className="w-full">
+                      <Eye className="mr-2 h-4 w-4" />
+                      View
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}

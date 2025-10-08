@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Tasks from "./pages/Tasks";
 import TaskDetail from "./pages/TaskDetail";
 import Processes from "./pages/Processes";
+import ProcessDetail from "./pages/ProcessDetail";
 import ProcessUpload from "./pages/ProcessUpload";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./components/AuthProvider";
@@ -50,6 +51,14 @@ const AppRoutes = () => (
       element={
         <ProtectedRoute>
           <Processes />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/processes/:id"
+      element={
+        <ProtectedRoute>
+          <ProcessDetail />
         </ProtectedRoute>
       }
     />

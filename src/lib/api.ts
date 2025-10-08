@@ -35,6 +35,7 @@ export interface ProcessDefinition {
   id: string;
   name: string;
   documentation?: string;
+  bpmnXml?: string;
 }
 
 export interface LoginRequest {
@@ -79,7 +80,6 @@ class ApiClient {
         ...(options.headers as Record<string, string>),
       };
 
-      // Only set Content-Type if it's not a FormData request
       if (!isFormData) {
         requestHeaders['Content-Type'] = 'application/json';
       }
@@ -171,6 +171,10 @@ class ApiClient {
   // Process endpoints
   async getProcessDefinitions(): Promise<ApiResponse<ProcessDefinition[]>> {
     return this.request('/v1/processes');
+  }
+
+  async getProcessDefinition(id: string): Promise<ApiResponse<ProcessDefinition>> {
+    return this.request(`/v1/processes/${id}`);
   }
 
   async getProcessInstances(): Promise<ApiResponse<ProcessInstanceDTO[]>> {

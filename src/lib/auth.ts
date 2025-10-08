@@ -1,4 +1,4 @@
-export const TEST_USER = 'alice';
+export const TEST_USER = 'test-user';
 export const TEST_GROUPS = 'customers';
 
 export interface User {
