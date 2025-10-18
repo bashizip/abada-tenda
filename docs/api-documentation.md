@@ -1,6 +1,6 @@
 # Abada Engine API Documentation
 
-This document provides a detailed overview of the Abada Engine REST API endpoints. All request and response bodies are in JSON format.
+This document provides a detailed and accurate overview of the Abada Engine REST API endpoints. All request and response bodies are in JSON format.
 
 ---
 
@@ -35,7 +35,7 @@ Deploys a new BPMN process definition from an XML file.
 
 - **Method & URL**: `POST /v1/processes/deploy`
 - **Request Type**: `multipart/form-data`
-    - `file`: The BPMN 2.0 XML file.
+  - `file`: The BPMN 2.0 XML file.
 - **Success Response** (`200 OK`):
   ```json
   {
@@ -65,7 +65,7 @@ Starts a new instance of a deployed process.
 
 - **Method & URL**: `POST /v1/processes/start`
 - **Query Parameters**:
-    - `processId` (string, required): The ID of the process to start. Example: `/v1/processes/start?processId=recipe-cook`
+  - `processId` (string, required): The ID of the process to start. Example: `/v1/processes/start?processId=recipe-cook`
 - **Success Response** (`200 OK`):
   ```json
   {
@@ -83,7 +83,7 @@ Starts a new instance of a deployed process.
 
 ### List All Process Instances
 
-Retrieves a list of all process instances, both active and completed.
+Retrieves a list of all process instances.
 
 - **Method & URL**: `GET /v1/processes/instances`
 - **Success Response** (`200 OK`):
@@ -91,9 +91,7 @@ Retrieves a list of all process instances, both active and completed.
   [
     {
       "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-      "currentActivityId": "user_task_1",
-      "variables": {},
-      "isCompleted": false,
+      "status": "RUNNING",
       "startDate": "2024-01-01T12:00:00Z",
       "endDate": null
     }
@@ -106,14 +104,15 @@ Retrieves a specific process instance by its ID.
 
 - **Method & URL**: `GET /v1/processes/instance/{id}`
 - **Path Parameters**:
-    - `{id}` (string, required): The unique ID of the process instance. **This must be part of the URL path.**
+  - `{id}` (string, required): The unique ID of the process instance. **This must be part of the URL path.**
 - **Success Response** (`200 OK`):
   ```json
   {
     "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-    "currentActivityId": "user_task_1",
-    "variables": {},
-    "isCompleted": false,
+    "status": "RUNNING",
+    "variables": {
+      "orderId": "order_456"
+    },
     "startDate": "2024-01-01T12:00:00Z",
     "endDate": null
   }
@@ -125,7 +124,7 @@ Marks a running process instance as FAILED.
 
 - **Method & URL**: `POST /v1/processes/instance/{id}/fail`
 - **Path Parameters**:
-    - `{id}` (string, required): The unique ID of the process instance to fail. **This must be part of the URL path.**
+  - `{id}` (string, required): The unique ID of the process instance to fail. **This must be part of the URL path.**
 - **Success Response** (`200 OK`):
   ```json
   {
@@ -140,7 +139,7 @@ Retrieves a specific process definition by its ID.
 
 - **Method & URL**: `GET /v1/processes/{id}`
 - **Path Parameters**:
-    - `{id}` (string, required): The ID of the process definition. **This must be part of the URL path.**
+  - `{id}` (string, required): The ID of the process definition. **This must be part of the URL path.**
 - **Success Response** (`200 OK`):
   ```json
   {
@@ -161,7 +160,7 @@ Retrieves a list of tasks visible to the current user.
 
 - **Method & URL**: `GET /v1/tasks`
 - **Query Parameters**:
-    - `status` (string, optional): Filters tasks by their current status. Valid values: `AVAILABLE`, `CLAIMED`, etc.
+  - `status` (string, optional): Filters tasks by their current status. (e.g., `AVAILABLE`, `CLAIMED`).
 - **Success Response** (`200 OK`):
   ```json
   [
@@ -171,9 +170,7 @@ Retrieves a list of tasks visible to the current user.
       "assignee": "patrick",
       "status": "CLAIMED",
       "startDate": "2024-01-01T12:00:00Z",
-      "endDate": null,
-      "processInstanceId": "instance_123",
-      "variables": {}
+      "endDate": null
     }
   ]
   ```
@@ -184,7 +181,7 @@ Retrieves the details of a specific task by its ID.
 
 - **Method & URL**: `GET /v1/tasks/{id}`
 - **Path Parameters**:
-    - `{id}` (string, required): The unique ID of the task. **This must be part of the URL path.**
+  - `{id}` (string, required): The unique ID of the task. **This must be part of the URL path.**
 - **Success Response** (`200 OK`):
   ```json
   {
@@ -194,7 +191,6 @@ Retrieves the details of a specific task by its ID.
     "status": "CLAIMED",
     "startDate": "2024-01-01T12:00:00Z",
     "endDate": null,
-    "processInstanceId": "instance_123",
     "variables": {
       "orderId": "order_456"
     }
@@ -203,9 +199,11 @@ Retrieves the details of a specific task by its ID.
 
 ### Claim a Task
 
+Claims an unassigned task for the current user.
+
 - **Method & URL**: `POST /v1/tasks/claim`
 - **Query Parameters**:
-    - `taskId` (string, required): The ID of the task to claim. Example: `/v1/tasks/claim?taskId=task_789`
+  - `taskId` (string, required): The ID of the task to claim. Example: `/v1/tasks/claim?taskId=task_789`
 - **Success Response** (`200 OK`):
   ```json
   {
@@ -216,13 +214,16 @@ Retrieves the details of a specific task by its ID.
 
 ### Complete a Task
 
+Completes a task currently assigned to the user.
+
 - **Method & URL**: `POST /v1/tasks/complete`
 - **Query Parameters**:
-    - `taskId` (string, required): The ID of the task to complete.
+  - `taskId` (string, required): The ID of the task to complete.
 - **Request Body** (JSON, optional):
   ```json
   {
-    "approved": true
+    "approved": true,
+    "comments": "Looks good."
   }
   ```
 - **Success Response** (`200 OK`):
@@ -243,9 +244,11 @@ Retrieves the details of a specific task by its ID.
 
 ### Fail a Task
 
+Marks a task as FAILED.
+
 - **Method & URL**: `POST /v1/tasks/fail`
 - **Query Parameters**:
-    - `taskId` (string, required): The ID of the task to fail.
+  - `taskId` (string, required): The ID of the task to fail.
 - **Success Response** (`200 OK`):
   ```json
   {
@@ -253,6 +256,112 @@ Retrieves the details of a specific task by its ID.
     "taskId": "task_789"
   }
   ```
+
+### Get User Statistics
+
+Retrieves comprehensive statistics and activity data for the current user.
+
+- **Method & URL**: `GET /v1/tasks/user-stats`
+- **Success Response** (`200 OK`):
+  ```json
+  {
+    "quickStats": {
+      "activeTasks": 2,
+      "completedTasks": 15,
+      "runningProcesses": 3,
+      "availableTasks": 1
+    },
+    "recentTasks": [
+      {
+        "id": "03b905d8-c251-4c40-8bb3-086a29299445",
+        "name": "Review Order",
+        "taskDefinitionKey": "review-order",
+        "status": "COMPLETED",
+        "startDate": "2024-01-15T10:30:00Z",
+        "processInstanceId": "656f2037-dddd-4c0f-af68-02a8634ff0e4"
+      },
+      {
+        "id": "c1067e06-5910-42cc-b172-c9bcf91b24d8",
+        "name": "Approve Payment",
+        "taskDefinitionKey": "approve-payment",
+        "status": "CLAIMED",
+        "startDate": "2024-01-15T09:15:00Z",
+        "processInstanceId": "17278ff4-40d0-426c-88bd-c8b24c64c39e"
+      }
+    ],
+    "tasksByStatus": {
+      "AVAILABLE": 1,
+      "CLAIMED": 2,
+      "COMPLETED": 15,
+      "FAILED": 0
+    },
+    "overdueTasks": [
+      {
+        "id": "overdue-task-123",
+        "name": "Urgent Review",
+        "taskDefinitionKey": "urgent-review",
+        "startDate": "2024-01-08T14:00:00Z",
+        "daysOverdue": 7,
+        "processInstanceId": "process-instance-456"
+      }
+    ],
+    "processActivity": {
+      "recentlyStartedProcesses": [
+        {
+          "id": "bf395379-cf21-4129-84f1-ac39c68022f7",
+          "processDefinitionId": "order-processing",
+          "startDate": "2024-01-15T08:00:00Z",
+          "currentActivityId": "review-order"
+        },
+        {
+          "id": "656f2037-dddd-4c0f-af68-02a8634ff0e4",
+          "processDefinitionId": "payment-approval",
+          "startDate": "2024-01-14T16:30:00Z",
+          "currentActivityId": null
+        }
+      ],
+      "activeProcessCount": 3,
+      "completionRate": 0.75
+    }
+  }
+  ```
+
+**Response Fields Description:**
+
+- **quickStats**: Summary statistics for the user
+  - `activeTasks`: Number of tasks currently in CLAIMED status by the user
+  - `completedTasks`: Number of tasks completed by the user
+  - `runningProcesses`: Number of process instances that have tasks for the user
+  - `availableTasks`: Number of tasks the user can claim (AVAILABLE status + eligible)
+
+- **recentTasks**: Array of the 10 most recent tasks assigned to the user, ordered by start date (newest first)
+  - `id`: Unique task identifier
+  - `name`: Human-readable task name
+  - `taskDefinitionKey`: BPMN task definition key
+  - `status`: Current task status
+  - `startDate`: When the task was created
+  - `processInstanceId`: ID of the process instance containing this task
+
+- **tasksByStatus**: Object with task counts grouped by status
+  - Keys are task status values (AVAILABLE, CLAIMED, COMPLETED, FAILED, etc.)
+  - Values are the count of tasks in that status for the user
+
+- **overdueTasks**: Array of tasks that are overdue (CLAIMED for more than 7 days)
+  - `id`: Unique task identifier
+  - `name`: Human-readable task name
+  - `taskDefinitionKey`: BPMN task definition key
+  - `startDate`: When the task was created
+  - `daysOverdue`: Number of days the task has been overdue
+  - `processInstanceId`: ID of the process instance containing this task
+
+- **processActivity**: Information about processes related to the user
+  - `recentlyStartedProcesses`: Array of recently started processes that have tasks for the user
+    - `id`: Unique process instance identifier
+    - `processDefinitionId`: ID of the process definition
+    - `startDate`: When the process instance was started
+    - `currentActivityId`: Current activity ID (null if process is completed)
+  - `activeProcessCount`: Number of active (RUNNING) process instances with user's tasks
+  - `completionRate`: Decimal value (0.0 to 1.0) representing the completion rate for processes with user's tasks
 
 ---
 
