@@ -52,6 +52,47 @@ export interface LoginResponse {
   };
 }
 
+export interface UserStatsDto {
+  quickStats: {
+    activeTasks: number;
+    completedTasks: number;
+    runningProcesses: number;
+    availableTasks: number;
+  };
+  recentTasks: Array<{
+    id: string;
+    name: string;
+    taskDefinitionKey: string;
+    status: TaskStatus;
+    startDate: string;
+    processInstanceId: string;
+  }>;
+  tasksByStatus: {
+    AVAILABLE: number;
+    CLAIMED: number;
+    COMPLETED: number;
+    FAILED: number;
+  };
+  overdueTasks: Array<{
+    id: string;
+    name: string;
+    taskDefinitionKey: string;
+    startDate: string;
+    daysOverdue: number;
+    processInstanceId: string;
+  }>;
+  processActivity: {
+    recentlyStartedProcesses: Array<{
+      id: string;
+      processDefinitionId: string;
+      startDate: string;
+      currentActivityId: string | null;
+    }>;
+    activeProcessCount: number;
+    completionRate: number;
+  };
+}
+
 class ApiClient {
   private getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('auth_token');
@@ -202,6 +243,11 @@ class ApiClient {
       method: 'POST',
       body: formData,
     });
+  }
+
+  // User stats endpoint
+  async getUserStats(): Promise<ApiResponse<UserStatsDto>> {
+    return this.request('/v1/tasks/user-stats');
   }
 }
 

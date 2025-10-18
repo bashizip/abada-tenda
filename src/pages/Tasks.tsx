@@ -113,10 +113,6 @@ export default function Tasks() {
                     <th className="text-left p-4 text-sm font-semibold text-muted-foreground">CANDIDATE GROUPS</th>
                     <th className="text-left p-4 text-sm font-semibold text-muted-foreground">START DATE</th>
                     <th className="text-left p-4 text-sm font-semibold text-muted-foreground">END DATE</th>
-                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">STATUS</th><th className="text-left p-4 text-sm font-semibold text-muted-foreground">ASSIGNEE</th>
-                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">CANDIDATE GROUPS</th>
-                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">START DATE</th>
-                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">END DATE</th>
                     <th className="text-left p-4 text-sm font-semibold text-muted-foreground">STATUS</th>
                   </tr>
                 </thead>
