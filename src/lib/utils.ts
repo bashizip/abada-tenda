@@ -13,7 +13,7 @@ export function formatDistanceToNow(dateString?: string): string {
 
   const date = new Date(dateString);
   const now = new Date();
-  const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
+  const seconds = Math.abs(Math.round((now.getTime() - date.getTime()) / 1000));
 
   if (seconds < 60) {
     return `${seconds} seconds ago`;

@@ -1,73 +1,180 @@
-# Welcome to your Lovable project
+# Tenda Orun Dashboard
 
-## Project info
+A modern web application for business process management (BPM) and workflow automation. This dashboard provides a comprehensive interface for managing tasks and processes, integrated with BPMN (Business Process Model and Notation) engine backend.
 
-**URL**: https://lovable.dev/projects/0a53e7bd-2990-4185-bfc7-4a49079adb20
+## 🚀 Features
 
-## How can I edit this code?
+### Task Management
+- **Task Dashboard**: View and manage assigned tasks with filtering and search capabilities
+- **Task Status Tracking**: Support for AVAILABLE, CLAIMED, COMPLETED, and FAILED statuses
+- **Task Operations**: Claim, complete, and fail tasks with variable support
+- **Task Details**: Detailed view of individual tasks with process context
 
-There are several ways of editing your application.
+### Process Management
+- **Process Definitions**: Browse available BPMN process definitions
+- **Process Visualization**: Interactive BPMN diagram viewer using bpmn-js
+- **Process Deployment**: Upload and deploy new BPMN process files
+- **Process Instances**: Start new process instances with custom variables
+- **Process Monitoring**: Track running process instances
 
-**Use Lovable**
+### Authentication & Authorization
+- **User Authentication**: Login system with JWT token management
+- **Role-based Access**: Support for user groups and permissions
+- **Session Management**: Persistent authentication with localStorage
+- **Protected Routes**: Route-level authentication guards
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0a53e7bd-2990-4185-bfc7-4a49079adb20) and start prompting.
+### User Interface
+- **Modern Design**: Clean, professional interface with dark/light theme support
+- **Responsive Layout**: Mobile-friendly design with responsive navigation
+- **Interactive Components**: Rich UI components including dialogs, dropdowns, and forms
+- **Real-time Feedback**: Toast notifications and loading states
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Technology Stack
 
-**Use your preferred IDE**
+- **Frontend Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **UI Library**: shadcn/ui components built on Radix UI primitives
+- **Styling**: Tailwind CSS with custom theming
+- **State Management**: React Query (TanStack Query) for server state
+- **Routing**: React Router DOM
+- **BPMN Visualization**: bpmn-js library for process diagram rendering
+- **Forms**: React Hook Form with Zod validation
+- **Icons**: Lucide React
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 📁 Project Structure
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui component library
+│   ├── AuthProvider.tsx # Authentication context
+│   ├── Layout.tsx      # Main application layout
+│   └── BpmnViewer.tsx  # BPMN diagram viewer
+├── pages/              # Route components
+│   ├── Tasks.tsx       # Task management page
+│   ├── Processes.tsx   # Process management page
+│   ├── TaskDetail.tsx  # Individual task view
+│   └── ProcessDetail.tsx # Process definition view
+├── hooks/              # Custom React hooks
+├── lib/                # Utility libraries
+│   ├── api.ts          # API client and types
+│   ├── auth.ts         # Authentication utilities
+│   └── utils.ts        # General utilities
+└── main.tsx           # Application entry point
 ```
 
-**Edit a file directly in GitHub**
+## 🚀 Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Prerequisites
 
-**Use GitHub Codespaces**
+- Node.js (v18 or higher) - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- npm or bun package manager
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Installation
 
-## What technologies are used for this project?
+1. **Clone the repository**
+   ```bash
+   git clone <YOUR_GIT_URL>
+   cd tenda-orun-dashboard
+   ```
 
-This project is built with:
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   bun install
+   ```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+3. **Start the development server**
+   ```bash
+   npm run dev
+   # or
+   bun dev
+   ```
 
-## How can I deploy this project?
+4. **Open your browser**
+   Navigate to `http://localhost:5173` to view the application.
 
-Simply open [Lovable](https://lovable.dev/projects/0a53e7bd-2990-4185-bfc7-4a49079adb20) and click on Share -> Publish.
+### Available Scripts
 
-## Can I connect a custom domain to my Lovable project?
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-Yes, you can!
+## 🔧 Configuration
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### API Configuration
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The application connects to a backend API. Update the API base URL in `src/lib/api.ts`:
+
+```typescript
+const API_BASE_URL = 'http://localhost:5601/abada/api';
+```
+
+### Authentication
+
+The application uses JWT-based authentication. Update the test user configuration in `src/lib/auth.ts`:
+
+```typescript
+export const TEST_USER = 'test-user';
+export const TEST_GROUPS = 'customers';
+```
+
+## 🎯 Use Cases
+
+This dashboard is designed for:
+
+- **Business Process Management**: Organizations needing to manage complex workflows
+- **Task Assignment**: Teams requiring task distribution and tracking
+- **Process Automation**: Companies implementing BPMN-based process automation
+- **Workflow Monitoring**: Real-time visibility into business process execution
+
+## 🔗 API Integration
+
+The application integrates with a REST API providing:
+
+- **Task Management**: CRUD operations for tasks
+- **Process Management**: Process definition and instance management
+- **Authentication**: JWT-based user authentication
+- **File Upload**: BPMN process deployment
+
+## 🚀 Deployment
+
+### Development Deployment
+
+1. Open [Lovable Project](https://lovable.dev/projects/0a53e7bd-2990-4185-bfc7-4a49079adb20)
+2. Click on Share -> Publish
+
+### Production Deployment
+
+1. Build the application:
+   ```bash
+   npm run build
+   ```
+
+2. Deploy the `dist` folder to your preferred hosting service
+
+### Custom Domain
+
+To connect a custom domain:
+1. Navigate to Project > Settings > Domains
+2. Click Connect Domain
+3. Follow the [custom domain setup guide](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is private and proprietary.
+
+## 🆘 Support
+
+For support and questions, please contact the development team or create an issue in the repository.

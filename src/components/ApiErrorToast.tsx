@@ -29,7 +29,7 @@ export function ApiErrorToast({ error, defaultMessage }: ApiErrorToastProps) {
   }
 
   return {
-    variant: "destructive",
+    variant: "destructive" as const,
     title: title,
     description: description,
     action: <ToastAction altText="Dismiss">Dismiss</ToastAction>,
