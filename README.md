@@ -2,6 +2,8 @@
 
 A modern web application for business process management (BPM) and workflow automation. This dashboard provides a comprehensive interface for managing tasks and processes, integrated with BPMN (Business Process Model and Notation) engine backend.
 
+![User Dashboard](screenshots/user-dashboard.png)
+
 ## 🚀 Features
 
 ### Task Management
