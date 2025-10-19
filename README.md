@@ -1,6 +1,6 @@
-# Tenda Orun Dashboard
+# Tenda 
 
-A modern web application for business process management (BPM) and workflow automation. This dashboard provides a comprehensive interface for managing tasks and processes, integrated with BPMN (Business Process Model and Notation) engine backend.
+A modern web application for business process management (BPM) and workflow automation. This app provides a comprehensive interface for managing tasks and processes, integrated with the Abada engine backend.
 
 ![User Dashboard](screenshots/user-dashboard.png)
 
@@ -146,8 +146,9 @@ The application integrates with a REST API providing:
 
 ### Development Deployment
 
-1. Open [Lovable Project](https://lovable.dev/projects/0a53e7bd-2990-4185-bfc7-4a49079adb20)
-2. Click on Share -> Publish
+   ```bash
+   npm run dev
+   ```
 
 ### Production Deployment
 
@@ -158,12 +159,6 @@ The application integrates with a REST API providing:
 
 2. Deploy the `dist` folder to your preferred hosting service
 
-### Custom Domain
-
-To connect a custom domain:
-1. Navigate to Project > Settings > Domains
-2. Click Connect Domain
-3. Follow the [custom domain setup guide](https://docs.lovable.dev/features/custom-domain#custom-domain)
 
 ## 🤝 Contributing
 
@@ -175,7 +170,7 @@ To connect a custom domain:
 
 ## 📄 License
 
-This project is private and proprietary.
+MIT
 
 ## 🆘 Support
 
